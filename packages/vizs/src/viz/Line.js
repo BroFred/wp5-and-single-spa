@@ -2,13 +2,7 @@ import React, {useEffect, useState}from 'react';
 import { Chart, LineAdvance } from 'bizcharts';
 
 function Demo( {primary} ) {
-  const [data, setdata] = useState([]);
-  useEffect(() => {
-    const primary$ = primary();
-    primary$.subscribe(setdata);
-    return () => primary$.unsubscribe && primary$.unsubscribe();
-  }, [primary]);
-	return <Chart padding={[10, 20, 50, 40]} autoFit height={300} data={data} >
+	return <Chart padding={[10, 20, 50, 40]} autoFit height={300} data={primary} >
 		<LineAdvance
 			shape="smooth"
 			point

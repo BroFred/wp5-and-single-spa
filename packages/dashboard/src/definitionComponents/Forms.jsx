@@ -1,20 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSetRecoilState, useRecoilState, useRecoilValue }from 'recoil';
 import { map, omit, values, fromPairs} from 'ramda';
 import { tokenFamily, dataAtomFamily, definitionFormAtom } from './recoilStore';
-import { getTokensArrayFromConfig, renderJson } from "../utils/misc";
+import { getTokensArrayFromConfig, renderJson, loadComponent } from "../utils/misc";
+
+const useImportForm = (type) => useMemo(
+  () => {
+    return React.lazy(loadComponent('resources', `./${type}`));
+  },
+  [type]
+);
 
 const formFactory = ( tokenAtom, dataAtom ) =>{
   return ({config})=> {
-    const tokens = map(([k, tk])=>[k, useRecoilValue(tk)], tokenAtom);
-    const data = map((d)=>useRecoilState(d), dataAtom);
+    const tokens = map(([k, tk])=>[k, useRecoilState(tk)], tokenAtom);
+    const { type, tokens: tks } = config;
+    const tokenObj = fromPairs(tokens); 
+    const EditableTokenAtom = map((t)=>tokenObj[t],tks)
+    const data = map((d)=>useRecoilValue(d), dataAtom);
+    const Comp = useImportForm(config.type);
     const configWithToken = renderJson({
       ...config,
-      ...fromPairs(tokens)
+      ...tokenObj
     });
-    return <div>{
-      JSON.stringify(data)
-      }</div>;
+    return <Suspense fallback={<div>loading.....</div>}><Comp {...data} states={EditableTokenAtom}/></Suspense>
   }
 }
 

@@ -18,7 +18,7 @@ module.exports = {
     },
 
     resolve: {
-        extensions: [".jsx", ".js", ".json"],
+        extensions: [".jsx", ".js", ".json", ".tsx", "ts"],
     },
 
     module: {
@@ -27,7 +27,7 @@ module.exports = {
                 test: /\.jsx?$/,
                 loader: require.resolve("babel-loader"),
                 options: {
-                    presets: [require.resolve("@babel/preset-react")],
+                    presets: ["@babel/preset-react", "@babel/preset-typescript"],
                     plugins: [
                         [
                             "import",

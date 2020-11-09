@@ -1,20 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import { useSetRecoilState, useRecoilState, useRecoilValue }from 'recoil';
-import { map, omit, values, fromPairs} from 'ramda';
+import React, { useState, useEffect, useMemo, Suspense  } from 'react';
+import { useSetRecoilState, useRecoilValue }from 'recoil';
+import { map, omit, values, fromPairs } from 'ramda';
 import { tokenFamily, dataAtomFamily, definitionVizAtom } from './recoilStore';
-import { getTokensArrayFromConfig, renderJson } from "../utils/misc";
+import { getTokensArrayFromConfig, renderJson, loadComponent } from "../utils/misc";
+
+const useImportViz = (type) => useMemo(
+  () => {
+    return React.lazy(loadComponent('resources', `./${type}`));
+  },
+  [type]
+);
 
 const vizFactory = ( tokenAtom, dataAtom ) =>{
   return ({config})=> {
     const tokens = map(([k, tk])=>[k, useRecoilValue(tk)], tokenAtom);
-    const data = map((d)=>useRecoilState(d), dataAtom);
+    const data = map((d)=>useRecoilValue(d), dataAtom);
+    const Comp = useImportViz(config.type);
     const configWithToken = renderJson({
       ...config,
       ...fromPairs(tokens)
     });
-    return <div>{
-      JSON.stringify(configWithToken)
-      }</div>;
+    return <Suspense fallback={<div>loading.....</div>}><Comp {...data} /></Suspense>
   }
 }
 
@@ -32,6 +38,7 @@ const generateViz = (vizConfig, key)=>{
 const Vizs = ({defaultViz}) => {
   const setDefinitionVizAtom = useSetRecoilState(definitionVizAtom);
   const [ vizDef, setVizDef ] = useState(defaultViz);
+  
   useEffect(() => {
     setDefinitionVizAtom(vizDef);
   }, [vizDef, setDefinitionVizAtom]);
