@@ -1,5 +1,15 @@
 {
-    "extends": ["airbnb", "airbnb/hooks", "prettier", "prettier/react"],
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "airbnb",
+        "airbnb/hooks",
+        "prettier",
+        "prettier/react"
+    ],
     "env": {
         "browser": true,
         "node": true

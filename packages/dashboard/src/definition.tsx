@@ -28,11 +28,17 @@ const DashboardContainer = styled.div`
 */
 
 
+interface Definition {
+  dataSources: object;
+  visualizations: object;
+  forms?: object;
+  tokens?: object;
+  layout: object;
+}
 
-
-const DashboardCore = (def) => {
+const DashboardCore = ( def: Definition ) => {
   const { forms, visualizations: viz , tokens, dataSources: dataSource, layout } = def;
-  return (props) => {
+  return () => {
     return (
       <DashboardContainer>
         <Forms defaultForm={forms} Layout={ Fromlayout } />
