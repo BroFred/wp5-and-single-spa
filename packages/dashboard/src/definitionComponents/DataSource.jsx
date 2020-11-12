@@ -66,7 +66,7 @@ const DataSources = ({defaultDataSource}) =>{
 
   return (<>
    {map(({Comp, key, config})=><Comp key={key} ds={config} />,DataSourceStoresArray)}
-   {map(({key})=><Test key={key} k={key} />,DataSourceStoresArray)}
+   {/* {map(({key})=><Test key={key} k={key} />,DataSourceStoresArray)}
 
    <button onClick={()=> addDataStore(
      "search5",{
@@ -85,7 +85,7 @@ const DataSources = ({defaultDataSource}) =>{
     },
    ) }>update</button>
    <button onClick={()=> deleteDataStore(
-     "search1") }>del</button>
+     "search1") }>del</button> */}
   </>);
 }
 

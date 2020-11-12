@@ -8,7 +8,7 @@
     },
     "search2": {
       "type": "uql",
-      "query": "http://localhost:3000/posts?_page={value1}",
+      "query": "http://localhost:3000/posts?_page={value}",
       "a": "c",
       "b": "d"
     },
@@ -194,7 +194,7 @@
       "type": "form.Select",
       "options": {},
       "tokens": {
-        "primary": "value"
+        "primary": "value1"
       },
       "dataSources": {
         "primary": "dropdownOptions"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSetRecoilState, useRecoilState, useRecoilValue }from 'recoil';
-import { map, omit, values, fromPairs} from 'ramda';
+import { map, omit, values, fromPairs, mapObjIndexed} from 'ramda';
 import { tokenFamily, dataAtomFamily, definitionFormAtom } from './recoilStore';
 import { getTokensArrayFromConfig, renderJson, loadComponent } from "../utils/misc";
 
@@ -41,13 +41,13 @@ const generateViz = (vizConfig, key)=>{
     vizName: key
   }
 }
-const Forms = ({defaultForm}) => {
+const Forms = ({ defaultForm, Layout }) => {
   const setDefinitionVizAtom = useSetRecoilState(definitionFormAtom);
   const [ formDef, setVizDef ] = useState(defaultForm);
   useEffect(() => {
     setDefinitionVizAtom(formDef);
   }, [formDef, setDefinitionVizAtom]);
-  const [ formPak, setVizComp ] = useState(map(generateViz, formDef));
+  const [ formPak, setVizComp ] = useState(mapObjIndexed(generateViz, formDef));
 
   const delViz = (name)=>{
     setVizComp(omit([name],formPak));
@@ -66,7 +66,7 @@ const Forms = ({defaultForm}) => {
 
   return (
     <>
-      <button onClick={()=>upsertViz("table4",{
+      {/* <button onClick={()=>upsertViz("table4",{
       "title": "Demo",
       "type": "viz.Line",
       "options": {
@@ -88,10 +88,12 @@ const Forms = ({defaultForm}) => {
       "dataSources": {
         "primary": "search1"
       }
-    })}>update</button>
-      {
-        map(({ VizComp:V,vizConfig,vizName })=><V key={vizName} config={vizConfig}/>, values(formPak))
-      }
+    })}>update</button> */}
+      <Layout>
+        {
+          map(({ VizComp:V,vizConfig,vizName })=><V key={vizName} config={vizConfig}/>, values(formPak))
+        }
+      </Layout>
     </>
   );
 

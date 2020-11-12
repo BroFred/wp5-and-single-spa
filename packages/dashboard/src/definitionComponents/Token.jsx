@@ -41,9 +41,9 @@ const Token = ({defaultToken}) => {
   const TokenFamily = mapObjIndexed((v,k)=>(<TokenStore key={k} tokenAtom={tokenFamily(k)} name={k}/>),defToken);
   return (
     <>
-      {
+      {/* {
         map((V)=>V, values(TokenFamily))
-      }
+      } */}
     </>
   );
 };

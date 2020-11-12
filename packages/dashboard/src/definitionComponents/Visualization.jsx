@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, Suspense  } from 'react';
-import { useSetRecoilState, useRecoilValue }from 'recoil';
-import { map, omit, values, fromPairs } from 'ramda';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import { useSetRecoilState, useRecoilValue } from 'recoil';
+import { map, omit, values, fromPairs, mapObjIndexed } from 'ramda';
 import { tokenFamily, dataAtomFamily, definitionVizAtom } from './recoilStore';
 import { getTokensArrayFromConfig, renderJson, loadComponent } from "../utils/misc";
 
@@ -11,10 +11,10 @@ const useImportViz = (type) => useMemo(
   [type]
 );
 
-const vizFactory = ( tokenAtom, dataAtom ) =>{
-  return ({config})=> {
-    const tokens = map(([k, tk])=>[k, useRecoilValue(tk)], tokenAtom);
-    const data = map((d)=>useRecoilValue(d), dataAtom);
+const vizFactory = (tokenAtom, dataAtom) => {
+  return ({ config }) => {
+    const tokens = map(([k, tk]) => [k, useRecoilValue(tk)], tokenAtom);
+    const data = map((d) => useRecoilValue(d), dataAtom);
     const Comp = useImportViz(config.type);
     const configWithToken = renderJson({
       ...config,
@@ -24,31 +24,31 @@ const vizFactory = ( tokenAtom, dataAtom ) =>{
   }
 }
 
-const generateViz = (vizConfig, key)=>{
+const generateViz = (vizConfig, key) => {
   const relatedTokensId = getTokensArrayFromConfig(vizConfig);
-  const relatedTokens = map((k)=>[k, tokenFamily(k)], relatedTokensId);
+  const relatedTokens = map((k) => [k, tokenFamily(k)], relatedTokensId);
   const { dataSources } = vizConfig;
-  const relatedDataSources = map((v)=>dataAtomFamily(v), dataSources);
+  const relatedDataSources = map((v) => dataAtomFamily(v), dataSources);
   return {
     VizComp: vizFactory(relatedTokens, relatedDataSources),
     vizConfig,
     vizName: key
   }
 }
-const Vizs = ({defaultViz}) => {
+const Vizs = ({ defaultViz, Layout }) => {
   const setDefinitionVizAtom = useSetRecoilState(definitionVizAtom);
-  const [ vizDef, setVizDef ] = useState(defaultViz);
-  
+  const [vizDef, setVizDef] = useState(defaultViz);
+
   useEffect(() => {
     setDefinitionVizAtom(vizDef);
   }, [vizDef, setDefinitionVizAtom]);
-  const [ vizPak, setVizComp ] = useState(map(generateViz, vizDef));
+  const [vizPak, setVizComp] = useState(mapObjIndexed(generateViz, vizDef));
 
-  const delViz = (name)=>{
-    setVizComp(omit([name],vizPak));
-    setVizDef(omit([name],vizDef));
+  const delViz = (name) => {
+    setVizComp(omit([name], vizPak));
+    setVizDef(omit([name], vizDef));
   };
-  const upsertViz = (name, config)=>{
+  const upsertViz = (name, config) => {
     setVizComp({
       ...vizPak,
       [name]: generateViz(config, name)
@@ -60,8 +60,7 @@ const Vizs = ({defaultViz}) => {
   };
 
   return (
-    <>
-      <button onClick={()=>upsertViz("table4",{
+    /* <button onClick={()=>upsertViz("table4",{
       "title": "Demo",
       "type": "viz.Line",
       "options": {
@@ -83,11 +82,10 @@ const Vizs = ({defaultViz}) => {
       "dataSources": {
         "primary": "search1"
       }
-    })}>update</button>
-      {
-        map(({ VizComp:V,vizConfig,vizName })=><V key={vizName} config={vizConfig}/>, values(vizPak))
-      }
-    </>
+    })}>update</button> */
+      <Layout>{
+        map(({ VizComp: V, vizConfig, vizName }) => <V key={vizName} config={vizConfig} />, values(vizPak))
+      }</Layout>
   );
 
 }
