@@ -18,16 +18,16 @@ module.exports = {
     },
 
     resolve: {
-        extensions: [".jsx", ".js", ".json"],
+        extensions: [".jsx", ".js", ".json", ".tsx", ".ts"],
     },
 
     module: {
         rules: [
             {
-                test: /\.jsx?$/,
-                loader: require.resolve("babel-loader"),
+                test:  /\.(ts|js)x?$/,
+                loader: 'babel-loader',
                 options: {
-                    presets: [require.resolve("@babel/preset-react")],
+                    presets: ["@babel/preset-react", "@babel/preset-typescript"],
                     plugins: [
                         [
                             "import",

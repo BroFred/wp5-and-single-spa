@@ -5,16 +5,9 @@ import {toPairs, map} from 'ramda';
 const { Option } = Select;
 
 
-const FormSelector = ({ states, primary:primaryDataSource }) =>{
-  const [data, setdata] = useState([]);
+const FormSelector = ({ states, primary:data }) =>{
   const { primary } = states;
   const [primaryToken, setPrimaryToken] = primary;
-
-  useEffect(() => {
-    const primary$ = primaryDataSource();
-    primary$.subscribe(setdata);
-    return () => primary$.unsubscribe && primary$.unsubscribe();
-  }, [primary]);
 
   return (
     <Select value={primaryToken} style={{ width: 120 }} onChange={setPrimaryToken}>
