@@ -10,6 +10,7 @@ import DataSource from "./definitionComponents/DataSource";
 import Token from "./definitionComponents/Token";
 import Viz from "./definitionComponents/Visualization";
 import Forms from "./definitionComponents/Forms";
+import JsonViewer from './definitionComponents/JsonViwer';
 
 const DashboardContainer = styled.div`
   margin: 10px;
@@ -45,6 +46,7 @@ const DashboardCore = ( def: Definition ) => {
         <DataSource defaultDataSource={dataSource} />
         <Token defaultToken = {tokens}/>
         <Viz defaultViz={viz} Layout={ getVizGirdLayout(layout) } />
+        <JsonViewer/>
       </DashboardContainer>
     );
   };

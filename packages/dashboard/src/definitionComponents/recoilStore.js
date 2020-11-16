@@ -45,5 +45,11 @@ export const definitionFormAtom = atom({
 });
 
 // only used in Form Component --end
+const definition = {
+  dataSources:definitionDataSourceAtom,
+  visualizations:definitionVizAtom,
+  forms:definitionFormAtom,
+  tokens:definitionTokenAtom
+};
 
-export default null;
+export default definition;
