@@ -9,11 +9,15 @@ import {
   omit,
 } from 'ramda';
 import React, { useState, useEffect } from 'react';
+import { withTheme } from '@rjsf/core';
+import { Theme as AntDTheme } from '@rjsf/antd';
 import dataSourceFactory from '../utils/dataSource';
 import { dataAtomFamily, tokenFamily, definitionDataSourceAtom } from './recoilStore';
-
+import editSchema from '../schema/dataSources/fields.json';
 
 // only this component can change data and definitionDataSource atoms
+
+const Form = withTheme(AntDTheme);
 
 const Test = ( {k} )=> {
   const data = useRecoilValue(dataAtomFamily(k));
@@ -45,6 +49,7 @@ const generateDataStore = (config, dataSourceName)=> ({
 const DataSources = ({defaultDataSource}) =>{
   const [dataSources, upsertDataSource, deleteDataSource] = useDataSources(defaultDataSource); 
   const [DataSourceStores, setDataSourceStores] = useState(mapObjIndexed(generateDataStore, dataSources));
+
   const updateDataStore = (name, config) => {
     const DataStoreWithoutName = omit([name], DataSourceStores);
     setDataSourceStores({...DataStoreWithoutName, [name]:generateDataStore(config, name)});
@@ -55,7 +60,6 @@ const DataSources = ({defaultDataSource}) =>{
     setDataSourceStores(DataStoreWithoutName);
     deleteDataSource(name);
   }
-
   const addDataStore = (name, config) => {
     const res = {...DataSourceStores, [name]:generateDataStore(config, name)}
     setDataSourceStores(res);
@@ -66,6 +70,12 @@ const DataSources = ({defaultDataSource}) =>{
 
   return (<>
    {map(({Comp, key, config})=><Comp key={key} ds={config} />,DataSourceStoresArray)}
+   <>
+    {
+      map(({key, config})=><Form schema={editSchema} formData={ {name:key, ...config} }/>, DataSourceStoresArray)
+    }
+   </>
+   
    {/* {map(({key})=><Test key={key} k={key} />,DataSourceStoresArray)}
 
    <button onClick={()=> addDataStore(
