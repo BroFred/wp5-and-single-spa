@@ -5,10 +5,15 @@ import {
   map,
   values,
   dropRepeats,
+  fromPairs,
+  toPairs,
+  unnest,
+  pair,
 } from 'ramda';
 import jVar from 'json-variables';
+import {DataSourceDefinition} from './dataSourceUtils';
 
-export const getTokenFromString = (s) => {
+export const getTokenFromString = (s:string):string[] => {
   const isString = is(String);
   if (!isString(s)) {
     return [];
@@ -18,15 +23,23 @@ export const getTokenFromString = (s) => {
   return tokens;
 };
 
-export const flatObject = (obj) => {
-  const getEntries = (o, prefix = '') =>
-    Object.entries(o).flatMap(([k, v]) =>
-      is(Object, v) ? getEntries(v, `${prefix}${k}.`) : [[`${prefix}${k}`, v]]
-    );
-  return Object.fromEntries(getEntries(obj));
+
+
+export const flatObject: (obj: DataSourceDefinition) => object = (obj) => {
+
+  const getEntries: (o: DataSourceDefinition | number | string, prefix?: string) => [string,unknown][] = (o, prefix = '') =>
+      unnest(map(([k, v]:[string, DataSourceDefinition|string|number]) =>{
+        if(is(Object, v)){
+          const entryObject = v as DataSourceDefinition;
+          return getEntries(entryObject, `${prefix}${k}.`)
+        }  
+        return [pair(`${prefix}${k}`, v)] 
+      }, toPairs(o as DataSourceDefinition )));
+
+  return fromPairs(getEntries(obj));
 };
 
-export const getTokensArrayFromConfig = (obj) => {
+export const getTokensArrayFromConfig: (obj: DataSourceDefinition) => string[] = (obj) => {
   const flattenedObject = flatObject(obj);
   const tokensRaw = flatten(map(getTokenFromString, values(flattenedObject)));
   const tokens = dropRepeats(tokensRaw);
@@ -51,5 +64,6 @@ export function loadComponent(scope, module) {
     return Module;
   };
 }
+
 
 export default null;

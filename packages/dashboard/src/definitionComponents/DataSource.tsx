@@ -1,6 +1,5 @@
 import {
   useSetRecoilState,
-  useRecoilValue
 } from 'recoil';
 import {
   mapObjIndexed,
@@ -15,29 +14,41 @@ import { dataAtomFamily, tokenFamily, definitionDataSourceAtom } from './recoilS
 
 // only this component can change data and definitionDataSource atoms
 
-const Test = ( {k} )=> {
-  const data = useRecoilValue(dataAtomFamily(k));
-return <div>{JSON.stringify(data)}</div>
+interface UpsertDataSource {
+  (name: string, config: object):void;
+}
+interface DeleteDataSource {
+  (name: string):void;
 }
 
-const useDataSources = (defaultDataSource={}) =>{
+interface  DataStore {
+  Comp: React.FunctionComponent<{ ds: object }>,
+  key: string,
+  config: object
+}
+
+interface GenerateDataStore {
+  (config:object, dataSourceName:string): DataStore
+}
+
+const useDataSources = (defaultDataSource:object={}):[object, UpsertDataSource, DeleteDataSource] =>{
   const [dataSources, setDataSources] = useState(defaultDataSource);
   const setDataSourceAtom = useSetRecoilState(definitionDataSourceAtom);
   useEffect(()=>setDataSourceAtom(dataSources), [ dataSources, setDataSourceAtom ]);
-  const upsertDataSource = (name, config)=> {
+  const upsertDataSource:UpsertDataSource = (name, config) =>{
     setDataSources({
       ...dataSources,
       [name]: config
     });
   };
-  const deleteDataSource = (name) =>{
-    setDataSources(omit(name,dataSources));
+  const deleteDataSource:DeleteDataSource = (name) =>{
+    setDataSources(omit([name],dataSources));
   };
 
   return [dataSources, upsertDataSource, deleteDataSource];
 }
 
-const generateDataStore = (config, dataSourceName)=> ({
+const generateDataStore:GenerateDataStore = (config, dataSourceName) => ({
   Comp: dataSourceFactory(dataAtomFamily(dataSourceName), tokenFamily),
   key: dataSourceName,
   config
@@ -45,18 +56,19 @@ const generateDataStore = (config, dataSourceName)=> ({
 const DataSources = ({defaultDataSource}) =>{
   const [dataSources, upsertDataSource, deleteDataSource] = useDataSources(defaultDataSource); 
   const [DataSourceStores, setDataSourceStores] = useState(mapObjIndexed(generateDataStore, dataSources));
-  const updateDataStore = (name, config) => {
+
+  const updateDataStore:UpsertDataSource = (name, config) => {
     const DataStoreWithoutName = omit([name], DataSourceStores);
     setDataSourceStores({...DataStoreWithoutName, [name]:generateDataStore(config, name)});
     upsertDataSource(name, config);
   }
-  const deleteDataStore = (name) => {
+  const deleteDataStore:DeleteDataSource = (name) => {
     const DataStoreWithoutName = omit([name], DataSourceStores);
     setDataSourceStores(DataStoreWithoutName);
     deleteDataSource(name);
   }
 
-  const addDataStore = (name, config) => {
+  const addDataStore:UpsertDataSource = (name, config) => {
     const res = {...DataSourceStores, [name]:generateDataStore(config, name)}
     setDataSourceStores(res);
     upsertDataSource(name, config);

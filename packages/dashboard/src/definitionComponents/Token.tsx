@@ -2,18 +2,16 @@ import React, { useState, useEffect } from 'react';
 import {
   useSetRecoilState,
   useRecoilState,
-  useRecoilValue
+  RecoilState,
 } from 'recoil';
 import {
   omit,
-  values,
-  map,
   mapObjIndexed,
 } from 'ramda';
 import { tokenFamily, definitionTokenAtom } from './recoilStore';
 
 
-const TokenStore = ({tokenAtom, name}) => {
+const TokenStore: React.FunctionComponent<{tokenAtom:RecoilState<string|number>, name:string}> = ({tokenAtom, name}) => {
   const [ tokenValue, setTokenValue ] = useRecoilState(tokenAtom);
 return (
   <div>
@@ -32,11 +30,12 @@ const Token = ({defaultToken}) => {
   useEffect(() => {
     setDefTokenAtom(defToken);
   }, [defToken, setDefTokenAtom]);
-  const upsertToken = (k, v) =>setDefToken({
+
+  const upsertToken = (k:string, v:string|number) =>setDefToken({
     ...defToken,
     [k]: v
   });
-  const delToken = (k) =>setDefToken(omit([k],defToken));
+  const delToken = (k:string) =>setDefToken(omit([k],defToken));
 
   const TokenFamily = mapObjIndexed((v,k)=>(<TokenStore key={k} tokenAtom={tokenFamily(k)} name={k}/>),defToken);
   return (

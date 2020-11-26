@@ -3,6 +3,7 @@ import {
   fromPairs,
   equals,
   all,
+  pair,
 } from 'ramda';
 import {
   from,
@@ -15,19 +16,20 @@ import {
   scan,
 } from 'rxjs/operators';
 import deepmerge from 'deepmerge';
-import { useSetRecoilState, useRecoilValue } from 'recoil';
+import { useSetRecoilState, useRecoilValue, RecoilState, SerializableParam } from 'recoil';
 import React, { useEffect } from 'react';
-import { toObservable, translateDataSourceDefinitionToFetch, uqlPaginationStretagy } from './dataSourceUtils';
+import { toObservable, translateDataSourceDefinitionToFetch, uqlPaginationStretagy, DataSourceDefinition } from './dataSourceUtils';
 import {getTokensArrayFromConfig, renderJson } from "./misc";
 
-const dataSource = (dataSourceAtom, tokenFamily) => 
+
+const dataSource: (dataSourceAtom:RecoilState<any>, tokenFamily: (param: SerializableParam) => RecoilState<string>) => React.FunctionComponent<{ ds: DataSourceDefinition }> = (dataSourceAtom, tokenFamily) => 
 {
   // dataSource changes when token change, when config change
   return ({ ds }) => {
     const setter = useSetRecoilState(dataSourceAtom); // never change
     const { type } = ds; 
     const relatedTokensId = getTokensArrayFromConfig(ds);
-    const relatedTokens = map((k)=>[k,useRecoilValue(tokenFamily(k))], relatedTokensId);
+    const relatedTokens = map((k)=>pair(k,useRecoilValue(tokenFamily(k))), relatedTokensId);
     const config = renderJson({
       ...ds,
       ...fromPairs(relatedTokens)
@@ -52,18 +54,18 @@ const dataSource = (dataSourceAtom, tokenFamily) =>
         }
         return empty();
       }),
-      takeWhile((v) => v),
-      concatMap((response) => from(response.json())),
+      takeWhile((v) => !!v),
+      concatMap((response:Response) => from(response.json())),
       scan((acc, value) => deepmerge(acc, value), {}),
     );
     useEffect(() => {
-      res$.subscribe(setter);
+      const subscription = res$.subscribe(setter);
       return () => {
-        return res$ && res$.unsubscribe && res$.unsubscribe();
+        return subscription && subscription.unsubscribe();
       }
     }, [ res$, setter ])
     return <div/>;
   };
 };
-
+fetch
 export default dataSource;
