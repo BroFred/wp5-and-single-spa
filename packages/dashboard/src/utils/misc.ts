@@ -11,7 +11,12 @@ import {
   pair,
 } from 'ramda';
 import jVar from 'json-variables';
-import {DataSourceDefinition} from './dataSourceUtils';
+
+type ObjectKeyType = string | number
+
+export type DefinitionType = {
+  [propName in ObjectKeyType]: unknown;
+};
 
 export const getTokenFromString = (s:string):string[] => {
   const isString = is(String);
@@ -25,21 +30,21 @@ export const getTokenFromString = (s:string):string[] => {
 
 
 
-export const flatObject: (obj: DataSourceDefinition) => object = (obj) => {
+export const flatObject: (obj: DefinitionType) => object = (obj) => {
 
-  const getEntries: (o: DataSourceDefinition | number | string, prefix?: string) => [string,unknown][] = (o, prefix = '') =>
-      unnest(map(([k, v]:[string, DataSourceDefinition|string|number]) =>{
+  const getEntries: (o: DefinitionType | number | string, prefix?: string) => [string,unknown][] = (o, prefix = '') =>
+      unnest(map(([k, v]:[string, DefinitionType|string|number]) =>{
         if(is(Object, v)){
-          const entryObject = v as DataSourceDefinition;
+          const entryObject = v as DefinitionType;
           return getEntries(entryObject, `${prefix}${k}.`)
         }  
         return [pair(`${prefix}${k}`, v)] 
-      }, toPairs(o as DataSourceDefinition )));
+      }, toPairs(o as DefinitionType )));
 
   return fromPairs(getEntries(obj));
 };
 
-export const getTokensArrayFromConfig: (obj: DataSourceDefinition) => string[] = (obj) => {
+export const getTokensArrayFromConfig: (obj: DefinitionType) => string[] = (obj) => {
   const flattenedObject = flatObject(obj);
   const tokensRaw = flatten(map(getTokenFromString, values(flattenedObject)));
   const tokens = dropRepeats(tokensRaw);

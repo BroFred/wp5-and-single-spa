@@ -1,20 +1,31 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import { useSetRecoilState, useRecoilValue } from 'recoil';
-import { map, omit, values, fromPairs, mapObjIndexed } from 'ramda';
+import { useSetRecoilState, useRecoilValue, RecoilState } from 'recoil';
+import { map, omit, values, fromPairs, mapObjIndexed, pair, toPairs } from 'ramda';
 import { tokenFamily, dataAtomFamily, definitionVizAtom } from './recoilStore';
-import { getTokensArrayFromConfig, renderJson, loadComponent } from "../utils/misc";
+import { getTokensArrayFromConfig, renderJson, loadComponent, DefinitionType } from "../utils/misc";
 
-const useImportViz = (type) => useMemo(
+interface Config extends DefinitionType { 
+  type:string,
+  dataSources?: { [x: string]: unknown; } | { [x: number]: unknown; }
+}
+
+interface GeneratedFormPack {
+  VizComp: React.FunctionComponent<{ config:Config }>,
+  vizConfig: Config,
+  vizName: string
+}
+
+const useImportViz:(type:string)=>React.LazyExoticComponent<React.ComponentType<any>> = (type) => useMemo(
   () => {
     return React.lazy(loadComponent('resources', `./${type}`));
   },
   [type]
 );
 
-const vizFactory = (tokenAtom, dataAtom) => {
+const vizFactory:( tokenAtom:[string,RecoilState<any>][], dataAtom:[string,RecoilState<any>][] ) => React.FunctionComponent<{ config:Config }> = (tokenAtom, dataAtom) => {
   return ({ config }) => {
-    const tokens = map(([k, tk]) => [k, useRecoilValue(tk)], tokenAtom);
-    const data = map((d) => useRecoilValue(d), dataAtom);
+    const tokens = map(([k, tk]) => pair(k, useRecoilValue(tk)), tokenAtom);
+    const data = fromPairs(map(([k,v])=>pair(k,useRecoilValue(v)), dataAtom));
     const Comp = useImportViz(config.type);
     const configWithToken = renderJson({
       ...config,
@@ -24,11 +35,13 @@ const vizFactory = (tokenAtom, dataAtom) => {
   }
 }
 
-const generateViz = (vizConfig, key) => {
+const generateViz:(vizConfig: Config, key:string) => GeneratedFormPack = (vizConfig, key) => {
   const relatedTokensId = getTokensArrayFromConfig(vizConfig);
-  const relatedTokens = map((k) => [k, tokenFamily(k)], relatedTokensId);
+  const relatedTokens = map((k) => pair(k, tokenFamily(k)), relatedTokensId);
   const { dataSources } = vizConfig;
-  const relatedDataSources = map((v) => dataAtomFamily(v), dataSources);
+  const dataSourceTuples = toPairs(dataSources);
+  const relatedDataSources = map(([k,v]:[string, string])=>pair(k,dataAtomFamily(v)), dataSourceTuples);
+
   return {
     VizComp: vizFactory(relatedTokens, relatedDataSources),
     vizConfig,
@@ -44,11 +57,11 @@ const Vizs = ({ defaultViz, Layout }) => {
   }, [vizDef, setDefinitionVizAtom]);
   const [vizPak, setVizComp] = useState(mapObjIndexed(generateViz, vizDef));
 
-  const delViz = (name) => {
+  const delViz = (name:string) => {
     setVizComp(omit([name], vizPak));
     setVizDef(omit([name], vizDef));
   };
-  const upsertViz = (name, config) => {
+  const upsertViz = (name:string, config:Config) => {
     setVizComp({
       ...vizPak,
       [name]: generateViz(config, name)

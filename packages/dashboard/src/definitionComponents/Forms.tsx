@@ -31,7 +31,7 @@ const formFactory: ( tokenAtom:[string,RecoilState<any>][], dataAtom:[string,Rec
     const { type, tokens: tks } = config;
     const tokenObj = fromPairs(tokens); 
     const EditableTokenAtom = mapObjIndexed((t)=>tokenObj[t], tks);
-    const data = fromPairs(map(([k,v])=>useRecoilValue(v), dataAtom));
+    const data = fromPairs(map(([k,v])=>pair(k,useRecoilValue(v)), dataAtom));
     const Comp = useImportForm(config.type);
     const configWithToken = renderJson({
       ...config,
@@ -47,7 +47,6 @@ const generateViz: (vizConfig: Config, key:string) => GeneratedFormPack= (vizCon
   const { dataSources } = vizConfig;
   const dataSourceTuples = toPairs(dataSources);
   const relatedDataSources = map(([k,v]:[string, string])=>pair(k,dataAtomFamily(v)), dataSourceTuples);
-
   return {
     VizComp: formFactory(relatedTokens, relatedDataSources),
     vizConfig,
