@@ -23,7 +23,8 @@ const formFactory: ( tokenAtom:[string,RecoilState<any>][], dataAtom:[string,Rec
 
 const generateForm = (config: FormConfig, key:string,) => {
   const relatedTokensId = values(config.tokens);
-  return generator(formFactory, tokenFamily, dataAtomFamily)(config, key, relatedTokensId);
+  const  { Comp: V, config:c, name } =  generator(formFactory, tokenFamily, dataAtomFamily)(config, key, relatedTokensId);
+  return <V key={name} config={c} />
 }
 const Forms = ({ defaultForm, Layout }) => {
   const setDefinitionVizAtom = useSetRecoilState(definitionFormAtom);
@@ -75,7 +76,7 @@ const Forms = ({ defaultForm, Layout }) => {
     })}>update</button> */}
       <Layout>
         {
-          map(({ Comp:V,config,name })=><V key={name} config={config}/>, values(formPak))
+           values(formPak)
         }
       </Layout>
     </>

@@ -19,7 +19,8 @@ const vizFactory:( tokenAtom:[string,RecoilState<any>][], dataAtom:[string,Recoi
 
 const generateViz = (config: VizConfig, key:string,) => {
   const relatedTokensId = getTokensArrayFromConfig(config);
-  return generator(vizFactory, tokenFamily, dataAtomFamily)(config, key, relatedTokensId);
+  const  { Comp: V, config:c, name } = generator(vizFactory, tokenFamily, dataAtomFamily)(config, key, relatedTokensId);
+  return <V key={name} config={c} />
 }
 
 const Vizs = ({ defaultViz, Layout }) => {
@@ -70,9 +71,11 @@ const Vizs = ({ defaultViz, Layout }) => {
         "primary": "search1"
       }
     })}>update</button> */
-      <Layout>{
-        map(({ Comp: V, config, name }) => <V key={name} config={config} />, values(vizPak))
-      }</Layout>
+    <Layout>{
+        values(vizPak)
+      }
+    </Layout>
+      
   );
 
 }
