@@ -4,7 +4,7 @@ const Table = ({ primary, ...rest }) => {
 
   return (
     <>
-      <div> {rest.title} </div>
+      <div> {"this is test panel"} </div>
       <div>{Math.random()}</div> <div> {JSON.stringify(primary)} </div>
     </>
   );

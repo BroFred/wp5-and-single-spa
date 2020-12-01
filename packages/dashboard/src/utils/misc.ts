@@ -11,12 +11,39 @@ import {
   pair,
 } from 'ramda';
 import jVar from 'json-variables';
+import { lazy, useMemo } from 'react';
+
+import { RecoilState, SerializableParam } from 'recoil';
+
 
 type ObjectKeyType = string | number
 
-export type DefinitionType = {
+type DefinitionType = {
   [propName in ObjectKeyType]: unknown;
 };
+
+
+export interface VizConfig extends DefinitionType { 
+  type:string,
+  dataSources?: { [x: string]: unknown; } | { [x: number]: unknown; }
+}
+export interface FormConfig extends DefinitionType {
+  type:string,
+  tokens: { [x: string]: string; }
+  dataSources?: { [x: string]: unknown; } | { [x: number]: unknown; }
+}
+
+type Config = VizConfig | FormConfig;
+
+interface GeneratedPack {
+  Comp: React.FunctionComponent<{ config:Config }>,
+  config: Config,
+  name: string
+}
+
+interface Factory {
+  (tokenAtom:[string,RecoilState<any>][], dataAtom:[string,RecoilState<any>][]): React.FunctionComponent<{ config:Config }>
+}
 
 export const getTokenFromString = (s:string):string[] => {
   const isString = is(String);
@@ -70,5 +97,29 @@ export function loadComponent(scope, module) {
   };
 }
 
+
+
+  // const relatedTokensId = values(vizConfig.tokens);
+  // const relatedTokensId = getTokensArrayFromConfig(vizConfig);
+
+export const generator = (factory:Factory, tokenFamily:(param: SerializableParam) => RecoilState<string>, dataAtomFamily: (param: SerializableParam) => RecoilState<any[]>)  => 
+(config: Config, key:string, relatedTokensId:string[]):GeneratedPack => {
+  const relatedTokens = map((k:string)=>pair(k, tokenFamily(k)), relatedTokensId);
+  const { dataSources } = config;
+  const dataSourceTuples = toPairs(dataSources);
+  const relatedDataSources = map(([k,v]:[string, string])=>pair(k,dataAtomFamily(v)), dataSourceTuples);
+  return {
+    Comp: factory(relatedTokens, relatedDataSources),
+    config,
+    name: key
+  }
+}
+
+export const useImportResources:(type:string)=>React.LazyExoticComponent<React.ComponentType<any>> = (type) => useMemo(
+  () => {
+    return lazy(loadComponent('resources', `./${type}`));
+  },
+  [type]
+);
 
 export default null;

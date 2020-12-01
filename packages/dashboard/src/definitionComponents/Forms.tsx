@@ -2,29 +2,9 @@ import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSetRecoilState, useRecoilState, useRecoilValue, RecoilState }from 'recoil';
 import { map, omit, values, fromPairs, mapObjIndexed, pair, toPairs} from 'ramda';
 import { tokenFamily, dataAtomFamily, definitionFormAtom } from './recoilStore';
-import { getTokensArrayFromConfig, renderJson, loadComponent } from "../utils/misc";
+import { renderJson, loadComponent, generator, FormConfig, useImportResources } from "../utils/misc";
 
-
-interface Config { 
-  type:string,
-  tokens: { [x: string]: string; }
-  dataSources?: { [x: string]: unknown; } | { [x: number]: unknown; }
-}
-
-interface GeneratedFormPack {
-  VizComp: React.FunctionComponent<{ config:Config }>,
-  vizConfig: Config,
-  vizName: string
-}
-
-const useImportForm = (type:string) => useMemo(
-  () => {
-    return React.lazy(loadComponent('resources', `./${type}`));
-  },
-  [type]
-);
-
-const formFactory: ( tokenAtom:[string,RecoilState<any>][], dataAtom:[string,RecoilState<any>][] ) => React.FunctionComponent<{ config:Config }> 
+const formFactory: ( tokenAtom:[string,RecoilState<any>][], dataAtom:[string,RecoilState<any>][] ) => React.FunctionComponent<{ config:FormConfig }> 
 = (tokenAtom, dataAtom)=>{
   return ({config})=> {
     const tokens = map(([k, tk])=>pair(k, useRecoilState(tk)), tokenAtom);
@@ -32,7 +12,7 @@ const formFactory: ( tokenAtom:[string,RecoilState<any>][], dataAtom:[string,Rec
     const tokenObj = fromPairs(tokens); 
     const EditableTokenAtom = mapObjIndexed((t)=>tokenObj[t], tks);
     const data = fromPairs(map(([k,v])=>pair(k,useRecoilValue(v)), dataAtom));
-    const Comp = useImportForm(config.type);
+    const Comp = useImportResources(config.type);
     const configWithToken = renderJson({
       ...config,
       ...tokenObj
@@ -41,17 +21,9 @@ const formFactory: ( tokenAtom:[string,RecoilState<any>][], dataAtom:[string,Rec
   }
 }
 
-const generateViz: (vizConfig: Config, key:string) => GeneratedFormPack= (vizConfig, key)=>{
-  const relatedTokensId = values(vizConfig.tokens);
-  const relatedTokens = map((k:string)=>pair(k, tokenFamily(k)), relatedTokensId);
-  const { dataSources } = vizConfig;
-  const dataSourceTuples = toPairs(dataSources);
-  const relatedDataSources = map(([k,v]:[string, string])=>pair(k,dataAtomFamily(v)), dataSourceTuples);
-  return {
-    VizComp: formFactory(relatedTokens, relatedDataSources),
-    vizConfig,
-    vizName: key
-  }
+const generateForm = (config: FormConfig, key:string,) => {
+  const relatedTokensId = values(config.tokens);
+  return generator(formFactory, tokenFamily, dataAtomFamily)(config, key, relatedTokensId);
 }
 const Forms = ({ defaultForm, Layout }) => {
   const setDefinitionVizAtom = useSetRecoilState(definitionFormAtom);
@@ -59,16 +31,16 @@ const Forms = ({ defaultForm, Layout }) => {
   useEffect(() => {
     setDefinitionVizAtom(formDef);
   }, [formDef, setDefinitionVizAtom]);
-  const [ formPak, setVizComp ] = useState(mapObjIndexed(generateViz, formDef));
+  const [ formPak, setVizComp ] = useState(mapObjIndexed(generateForm, formDef));
 
   const delViz = (name:string):void=>{
     setVizComp(omit([name],formPak));
     setVizDef(omit([name],formDef));
   };
-  const upsertViz = (name:string, config:Config):void=>{
+  const upsertViz = (name:string, config:FormConfig):void=>{
     setVizComp({
       ...formPak,
-      [name]: generateViz(config, name)
+      [name]: generateForm(config, name)
     });
     setVizDef({
       ...formDef,
@@ -103,7 +75,7 @@ const Forms = ({ defaultForm, Layout }) => {
     })}>update</button> */}
       <Layout>
         {
-          map(({ VizComp:V,vizConfig,vizName })=><V key={vizName} config={vizConfig}/>, values(formPak))
+          map(({ Comp:V,config,name })=><V key={name} config={config}/>, values(formPak))
         }
       </Layout>
     </>
