@@ -21,7 +21,7 @@ const formFactory: ( tokenAtom:[string,RecoilState<any>][], dataAtom:[string,Rec
   }
 }
 
-const generateForm = (config: FormConfig, key:string,) => {
+const generateForm = (config: FormConfig, key:string,):JSX.Element => {
   const relatedTokensId = values(config.tokens);
   const  { Comp: V, config:c, name } =  generator(formFactory, tokenFamily, dataAtomFamily)(config, key, relatedTokensId);
   return <V key={name} config={c} />
