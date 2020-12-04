@@ -30,6 +30,7 @@ const generateViz = (config: VizConfig, key:string, dispatch ):JSX.Element => {
 
 const Vizs = ({ defaultViz, Layout }) => {
   const setDefinitionVizAtom = useSetRecoilState(definitionVizAtom);
+  const withVizName = (name, fn)=> (payload)=> fn({name,...payload });
   const reducer = (state, action) => {
      switch (action.type) {
       case 'init': 
@@ -46,7 +47,7 @@ const Vizs = ({ defaultViz, Layout }) => {
         return {
           vizPak: {
               ...state.vizPak,
-              [action.name]: generateViz(action.config, action.name, state.dispatchFn)
+              [action.name]: generateViz(action.config, action.name, withVizName(action.name, state.dispatchFn))
             },
           vizDef:{
                 ...state.vizDef,
@@ -67,7 +68,7 @@ const Vizs = ({ defaultViz, Layout }) => {
   useEffect(()=>{
     dispatch({
       type:"init",
-      vizPak: mapObjIndexed((v,key)=>generateViz(v, key, dispatch), state.vizDef),
+      vizPak: mapObjIndexed((v,key)=>generateViz(v, key, withVizName(key, dispatch)), state.vizDef),
       dispatchFn: dispatch
     })
   },[])

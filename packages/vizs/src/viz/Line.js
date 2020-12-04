@@ -14,9 +14,9 @@ function Demo( {primary, config, dispatch, name} ) {
 			color="city"
 		/>
 	</Chart>v
-		<button onClick={()=>dispatch({type:"del", name})}> Delete</button>
-		<button onClick={()=>dispatch({type:"upsert",name:"table4",config:{
-      "title": "Demo",
+		<button onClick={()=>dispatch({type:"del"})}> Delete</button>
+		<button onClick={()=>dispatch({type:"upsert",config:{
+      "title": "Demo1",
       "type": "viz.Line",
       "options": {
         "a": "c",
@@ -25,7 +25,7 @@ function Demo( {primary, config, dispatch, name} ) {
       "dataSources": {
         "primary": "sample"
       }
-    }})}>add</button>
+    }})}>update</button>
 		</div>
 	) 
 }
