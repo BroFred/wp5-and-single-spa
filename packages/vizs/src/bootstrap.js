@@ -1,1 +1,1 @@
-import('./index.js')
+import('react-styleguidist/lib/client/index')
