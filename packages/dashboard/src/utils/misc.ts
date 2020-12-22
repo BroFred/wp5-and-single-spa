@@ -36,7 +36,7 @@ export interface FormConfig extends DefinitionType {
 type Config = VizConfig | FormConfig;
 
 interface GeneratedPack {
-  Comp: React.FunctionComponent<{ config:Config }>,
+  Comp: React.FunctionComponent<{ config:Config, [x: string]:any}>,
   config: Config,
   name: string
 }

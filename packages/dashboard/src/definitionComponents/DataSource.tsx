@@ -9,13 +9,15 @@ import {
 } from 'ramda';
 import React, { useState, useEffect } from 'react';
 import dataSourceFactory from '../utils/dataSource';
+import { DataSourceDefinition } from '../utils/dataSourceUtils';
+
 import { dataAtomFamily, tokenFamily, definitionDataSourceAtom } from './recoilStore';
 
 
 // only this component can change data and definitionDataSource atoms
 
 interface UpsertDataSource {
-  (name: string, config: object):void;
+  (name: string, config: DataSourceDefinition):void;
 }
 interface DeleteDataSource {
   (name: string):void;
@@ -28,7 +30,7 @@ interface  DataStore {
 }
 
 interface GenerateDataStore {
-  (config:object, dataSourceName:string): DataStore
+  (config:DataSourceDefinition, dataSourceName:string):JSX.Element
 }
 
 const useDataSources = (defaultDataSource:object={}):[object, UpsertDataSource, DeleteDataSource] =>{
@@ -48,11 +50,10 @@ const useDataSources = (defaultDataSource:object={}):[object, UpsertDataSource, 
   return [dataSources, upsertDataSource, deleteDataSource];
 }
 
-const generateDataStore:GenerateDataStore = (config, dataSourceName) => ({
-  Comp: dataSourceFactory(dataAtomFamily(dataSourceName), tokenFamily),
-  key: dataSourceName,
-  config
-});
+const generateDataStore:GenerateDataStore = (config, dataSourceName) => {
+  const Comp = dataSourceFactory(dataAtomFamily(dataSourceName), tokenFamily);
+  return <Comp key={dataSourceName} ds={config} />
+};
 const DataSources = ({defaultDataSource}) =>{
   const [dataSources, upsertDataSource, deleteDataSource] = useDataSources(defaultDataSource); 
   const [DataSourceStores, setDataSourceStores] = useState(mapObjIndexed(generateDataStore, dataSources));
@@ -77,7 +78,7 @@ const DataSources = ({defaultDataSource}) =>{
   const DataSourceStoresArray = values(DataSourceStores);
 
   return (<>
-   {map(({Comp, key, config})=><Comp key={key} ds={config} />,DataSourceStoresArray)}
+   {DataSourceStoresArray}
    {/* {map(({key})=><Test key={key} k={key} />,DataSourceStoresArray)}
 
    <button onClick={()=> addDataStore(
